@@ -57,12 +57,6 @@ The command is passed as one command argument to `herdr pane run`.
 The configuration is read when the action runs, so changing `config.json` does
 not require a Herdr reload.
 
-For local development, link the checkout instead:
-
-```sh
-herdr plugin link /path/to/herdr-launch-default-agent
-```
-
 ## Example configuration
 
 For an Omarchy-style dedicated agent tab, configure the plugin directly:
