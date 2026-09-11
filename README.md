@@ -66,7 +66,7 @@ For local development, link the checkout instead:
 herdr plugin link /path/to/herdr-launch-default-agent
 ```
 
-## Example agent configuration
+## Example configuration
 
 For an Omarchy-style dedicated agent tab, configure the plugin directly:
 
