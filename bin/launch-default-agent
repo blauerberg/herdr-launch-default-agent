@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+plugin_id="${HERDR_PLUGIN_ID:-herdr-launch-default-agent}"
+herdr_bin="${HERDR_BIN_PATH:-herdr}"
+workspace_id="${HERDR_WORKSPACE_ID:-${HERDR_ACTIVE_WORKSPACE_ID:-}}"
+
+if ! command -v jq >/dev/null 2>&1; then
+  printf '%s\n' 'herdr-launch-default-agent: jq is required' >&2
+  exit 1
+fi
+
+if [ -z "$workspace_id" ]; then
+  printf '%s\n' 'herdr-launch-default-agent: no active workspace was provided' >&2
+  exit 1
+fi
+
+if [ -n "${HERDR_PLUGIN_CONFIG_DIR:-}" ]; then
+  config_file="$HERDR_PLUGIN_CONFIG_DIR/config.json"
+else
+  config_root="${XDG_CONFIG_HOME:-$HOME/.config}"
+  config_file="$config_root/herdr/plugins/$plugin_id/config.json"
+fi
+
+if [ -e "$config_file" ] && ! jq -e 'type == "object"' "$config_file" >/dev/null 2>&1; then
+  printf 'herdr-launch-default-agent: invalid JSON config: %s\n' "$config_file" >&2
+  exit 1
+fi
+
+config_value() {
+  local key="$1"
+  local default_value="$2"
+  local value=""
+
+  if [ -f "$config_file" ]; then
+    value="$(jq -r --arg key "$key" '
+      .[$key] as $value
+      | if (($value | type) == "string" and ($value | length) > 0)
+        then $value
+        else empty
+        end
+    ' "$config_file")"
+  fi
+
+  if [ -n "$value" ]; then
+    printf '%s' "$value"
+  else
+    printf '%s' "$default_value"
+  fi
+}
+
+tab_label="$(config_value tab_label 'Default Agent')"
+agent_command="$(config_value agent_command 'a')"
+
+tabs_json="$("$herdr_bin" tab list --workspace "$workspace_id")"
+tab_id="$(printf '%s\n' "$tabs_json" | jq -r --arg label "$tab_label" '
+  .result.tabs[]?
+  | select(.label == $label)
+  | .tab_id
+' | head -n 1)"
+
+if [ -n "$tab_id" ]; then
+  "$herdr_bin" tab focus "$tab_id" >/dev/null
+
+  agent_status="$(printf '%s\n' "$tabs_json" | jq -r --arg tab "$tab_id" '
+    .result.tabs[]?
+    | select(.tab_id == $tab)
+    | (.agent_status // "unknown")
+  ' | head -n 1)"
+
+  if [ "${agent_status:-unknown}" != "unknown" ]; then
+    exit 0
+  fi
+
+  panes_json="$("$herdr_bin" pane list --workspace "$workspace_id")"
+  pane_id="$(printf '%s\n' "$panes_json" | jq -r --arg tab "$tab_id" '
+    .result.panes[]?
+    | select(.tab_id == $tab)
+    | .pane_id
+  ' | head -n 1)"
+
+  if [ -z "$pane_id" ]; then
+    printf 'herdr-launch-default-agent: no pane found in tab %s\n' "$tab_id" >&2
+    exit 1
+  fi
+
+  "$herdr_bin" pane run "$pane_id" "$agent_command" >/dev/null
+  exit 0
+fi
+
+tab_json="$("$herdr_bin" tab create --workspace "$workspace_id" --focus --label "$tab_label")"
+pane_id="$(printf '%s\n' "$tab_json" | jq -r '.result.root_pane.pane_id // empty')"
+
+if [ -z "$pane_id" ]; then
+  printf '%s\n' 'herdr-launch-default-agent: tab creation returned no root pane' >&2
+  exit 1
+fi
+
+"$herdr_bin" pane run "$pane_id" "$agent_command" >/dev/null

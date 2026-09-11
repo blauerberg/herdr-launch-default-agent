@@ -1,0 +1,12 @@
+id = "herdr-launch-default-agent"
+name = "Launch Default Agent"
+version = "0.1.0"
+min_herdr_version = "0.9.0"
+description = "Focus or launch a configured default agent in a named tab"
+platforms = ["linux", "macos"]
+
+[[actions]]
+id = "open"
+title = "Focus or launch default agent"
+contexts = ["workspace"]
+command = ["bash", "bin/launch-default-agent"]
