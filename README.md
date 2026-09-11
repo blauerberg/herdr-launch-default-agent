@@ -1,5 +1,7 @@
 # herdr-launch-default-agent
 
+[![CI](https://github.com/blauerberg/herdr-launch-default-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/blauerberg/herdr-launch-default-agent/actions/workflows/ci.yml)
+
 Inspired by Omarchy Linux's default-agent workflow, this plugin provides a
 quick way to reach a preferred agent in Herdr.
 
@@ -61,17 +63,17 @@ not require a Herdr reload.
 For local development, link the checkout instead:
 
 ```sh
-herdr plugin link ~/src/me/herdr-launch-default-agent
+herdr plugin link /path/to/herdr-launch-default-agent
 ```
 
 ## Example agent alias
 
 Set `agent_command` to a command available in the target environment. Add the
 alias to the shell startup file used there, such as `~/.bashrc` or `~/.zshrc`.
-For example, this alias opens `~/Work` with Codex using the Luna Max model:
+For example:
 
 ```sh
-alias a='codex --cd "$HOME/Work" --model gpt-5.6-luna -c model_reasoning_effort=max'
+alias a='your-agent-command'
 ```
 
 After changing the keybinding, check and reload Herdr:
