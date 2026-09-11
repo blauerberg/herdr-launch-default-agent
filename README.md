@@ -70,10 +70,10 @@ herdr plugin link /path/to/herdr-launch-default-agent
 
 Set `agent_command` to a command available in the target environment. Add the
 alias to the shell startup file used there, such as `~/.bashrc` or `~/.zshrc`.
-For example:
+For example, this alias opens `~/Work` with Codex using the Luna Max model:
 
 ```sh
-alias a='your-agent-command'
+alias a='codex --cd "$HOME/Work" --model gpt-5.6-luna -c model_reasoning_effort=max'
 ```
 
 After changing the keybinding, check and reload Herdr:
