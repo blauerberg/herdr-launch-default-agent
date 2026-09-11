@@ -9,9 +9,6 @@ When triggered, it focuses a configured tab and launches the configured agent
 only when that tab has no active agent. If the tab does not exist, the plugin
 creates it first.
 
-The shared plugin can be used across Linux and macOS while the tab name and
-agent command remain user-specific.
-
 ## Requirements
 
 - Herdr 0.9.0 or later
